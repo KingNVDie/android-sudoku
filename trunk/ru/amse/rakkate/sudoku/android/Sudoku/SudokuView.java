@@ -65,7 +65,8 @@ public class SudokuView extends View {
 		myPaint.setColor(Color.RED);
 		canvas.drawRect(myLeft + (myX * mySizeSquare) + 1, myTop + (myY * mySizeSquare) + 2,myLeft + (myX * mySizeSquare) + 2 + mySizeSquare ,  myTop + (myY * mySizeSquare) + mySizeSquare + 3,myPaint);
 		myPaint.setColor(Color.WHITE);
-		int[][] matrix = myModel.getSudokuCondition();
+		int[][] matrix = myModel.getSudoku();
+		int[][] matrixCondition = myModel.getSudokuCondition();
 		myPaint.setColor(Color.WHITE);
 		for (int i = 0; i < myHeight; i++) {
 			for (int j = 0; j < myWidth; j++) {
@@ -76,6 +77,9 @@ public class SudokuView extends View {
                     canvas.drawRect(left,top,left + mySizeSquare - 2, top + mySizeSquare - 2, myPaint);
                     myPaint.setColor(Color.GRAY);
                     myPaint.setTextSize(20);
+                    if (matrixCondition[j][i] == 0) {
+                    	myPaint.setColor(Color.BLACK);
+                    }
                     canvas.drawText(s, myLeft + (i * mySizeSquare) + 11, (myTop + ((j + 1) * (mySizeSquare)) - 7), myPaint);
                     myPaint.setColor(Color.WHITE);
                 } else {
@@ -92,31 +96,39 @@ public class SudokuView extends View {
 	
 	public boolean onKeyDown(int KeyCode, KeyEvent event) {
 		if (event.getAction() == KeyEvent.ACTION_DOWN) {
-		    if ((KeyCode > 0) && (KeyCode < 10)) {
-		        myModel.setCell(myX, myY, KeyCode);
+		    if ((KeyCode >= 8) && (KeyCode <= 16)) {
+		    	System.out.println(KeyCode);
+		    	if (myModel.getSudokuCondition()[myY][myX] == 0) {
+		            myModel.setCell(myY, myX, KeyCode - 7);
+		    	}
+		        invalidate();
 		        return true;
 		    }
 		    if ((KeyCode == KeyEvent.KEYCODE_DPAD_DOWN)) {
-			    if (myY < 9) {
+			    if (myY < 8) {
 			       myY = myY + 1;
+			       invalidate();
 			       return true;
 			   }
 		    }
 		    if ((KeyCode == KeyEvent.KEYCODE_DPAD_UP)) {
 			    if (myY > 0) {
 			       myY = myY - 1;
+			       invalidate();
 			       return true;
 			    }
 		     }
 		    if ((KeyCode == KeyEvent.KEYCODE_DPAD_LEFT)) {
 			    if (myX > 0) {
 			       myX = myX - 1;
+			       invalidate();
 			       return true;
 			    }
 		    }
 		    if  ((KeyCode == KeyEvent.KEYCODE_DPAD_RIGHT)) {
-			    if (myX < 9) {
+			    if (myX < 8) {
 			       myX = myX + 1;
+			       invalidate();
 			       return true;
 			    }
 		    }
