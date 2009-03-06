@@ -10,7 +10,9 @@ import android.util.AttributeSet;
 import android.view.*;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
+import android.app.Activity;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.graphics.*;
 import android.graphics.drawable.*;
@@ -18,8 +20,9 @@ import ru.amse.rakkate.sudoku.logic.impl.*;
 import ru.amse.rakkate.sudoku.logic.*;
 
 
-public class SudokuView extends View {
+public class SudokuView extends View implements IModelListener{
 	
+	private static final String MYPREFS = null;
 	private Paint myPaint;
 	private final int myWidth  = Model.myWidth;
     private final int myHeight = Model.myWidth;
@@ -48,14 +51,15 @@ public class SudokuView extends View {
 	
 	protected void initSudokuView(Context context) {
 		setFocusable(true);
-		myPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-		myModel = new Model();
-	    IGeneratorCondition generator = new GeneratorCondition();
-	    int[][] matrix = generator.createCondition(42);
-	    myModel.setSudoku(matrix);  
+		myPaint = new Paint(Paint.ANTI_ALIAS_FLAG);  
 		myPaint.setColor(Color.BLACK);
 		myX = 0;
 		myY = 0;
+	}
+	
+	public void setModel(IModel m) {
+		myModel = m;
+		//invalidate();
 	}
 	
 	protected void onDraw(Canvas canvas) {
@@ -97,11 +101,9 @@ public class SudokuView extends View {
 	public boolean onKeyDown(int KeyCode, KeyEvent event) {
 		if (event.getAction() == KeyEvent.ACTION_DOWN) {
 		    if ((KeyCode >= 8) && (KeyCode <= 16)) {
-		    	System.out.println(KeyCode);
 		    	if (myModel.getSudokuCondition()[myY][myX] == 0) {
 		            myModel.setCell(myY, myX, KeyCode - 7);
 		    	}
-		        invalidate();
 		        return true;
 		    }
 		    if ((KeyCode == KeyEvent.KEYCODE_DPAD_DOWN)) {
@@ -132,7 +134,45 @@ public class SudokuView extends View {
 			       return true;
 			    }
 		    }
+		    if ((KeyCode == KeyEvent.KEYCODE_BACK)) {
+		    	saveSolution();
+		    }
 		}
 		return false;
 	}
+	
+	private void saveSolution() {
+		try {
+            FileWriter v = null;
+            try {
+            	v = new FileWriter("task.xml");
+                v = new FileWriter("task.xml");
+                WriterXML writer = new WriterXML();
+                writer.writeModel(v, myModel);
+            } finally {
+                if (v != null) {
+                    v.close();
+                }
+            }   
+        } catch (IOException e) {
+        	e.printStackTrace();
+        }
+	}
+	
+	 public void update(IModel m) {
+	    myModel = m;
+	    invalidate();
+	 }
+	 
+	 public void fillMap() {
+	     int [][] map = myModel.getSudokuSolution();
+	     for (int i = 0; i < Model.myHeight; i++) {
+	         for (int j = 0; j < Model.myWidth; j++) {
+	             myModel.setCell(i, j, map[i][j]);   
+	         }
+	     }
+	 }
+	 
+
+	 
 }

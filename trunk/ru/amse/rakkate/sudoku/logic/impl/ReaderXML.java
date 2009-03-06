@@ -30,10 +30,12 @@ public class ReaderXML {
         private int[][] myMatrixSudoku = new int[Model.myHeight][Model.myWidth];
         private int[][] myMatrixPrompting = new int[Model.myHeight *Model.myWidth][4];
         private int lineCounter = 0;
-        String state;
+        String state = "!";
         
         public void startElement(String uri, String localName, String rawName, Attributes a) throws SAXException {
-            state = rawName.toUpperCase();
+        	System.out.println(rawName);
+        	state = rawName.toUpperCase();
+            //System.out.println(rawName);
             if (state.equals("CONDITION")) {
                 lineCounter = 0;
                 myCondition = true;  
@@ -59,7 +61,9 @@ public class ReaderXML {
         public void characters(char[] ch, int start, int lenght) throws SAXException {
             String value = new String(ch, start, lenght);
             if (!Character.isISOControl(value.charAt(0))) {
+            	System.out.println(state);
                 if (state.equals("LINE")) {
+                	//System.out.println("Hello");
                     if (myCondition) {
                         for (int i = 0; i < value.length(); i++) {
                             char s = value.charAt(i);
@@ -76,7 +80,8 @@ public class ReaderXML {
                         for (int i = 0; i < value.length(); i++) {
                             char s = value.charAt(i);
                             int num = Integer.valueOf(s);
-                            myModel.setCell(lineCounter - 1, i, num - 48);         
+                            myModel.setCell(lineCounter - 1, i, num - 48); 
+                            System.out.println(num);
                         }      
                     } else if (myPrompting) {
                         for (int i = 0; i < value.length(); i++) {
