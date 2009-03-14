@@ -127,6 +127,23 @@ public class Model implements IModel {
             }      
     }
     
+    public boolean isFull() {
+    	int num = 0;
+    	for (int i = 0; i < myHeight; i++) {
+    		for (int j = 0; j < myWidth; j++) {
+    			if (mySudoku[i][j] != 0) {
+    				num++;
+    			}
+    			
+    		}
+    	}
+    	if (num == 81) {
+    		return true;
+    	}
+    	return false;
+    	
+    }
+    
     public boolean isAccuracy() {
         for (int i = 0; i < myHeight; i++) {
             for (int j = 0; j < myWidth; j++) {

@@ -1,9 +1,12 @@
 package ru.amse.rakkate.sudoku.android.Sudoku;
 
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
 import android.os.Handler;
 import android.util.AttributeSet;
@@ -11,11 +14,15 @@ import android.view.*;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.content.DialogInterface.OnClickListener;
 import android.content.res.Resources;
 import android.graphics.*;
-import android.graphics.drawable.*;
+import android.graphics.Paint.Style;
+import android.graphics.drawable.shapes.*;
 import ru.amse.rakkate.sudoku.logic.impl.*;
 import ru.amse.rakkate.sudoku.logic.*;
 
@@ -32,6 +39,10 @@ public class SudokuView extends View implements IModelListener{
     private final int myTop = 5;
     private int myX;
     private int myY;
+    private AlertDialog.Builder myDialog;
+    private List<Integer> squareList;
+    private boolean myIlluminate = true;
+    private int myNum = 0;
 
 	
 	public SudokuView(Context context) {
@@ -55,6 +66,7 @@ public class SudokuView extends View implements IModelListener{
 		myPaint.setColor(Color.BLACK);
 		myX = 0;
 		myY = 0;
+		squareList = new LinkedList<Integer>();
 	}
 	
 	public void setModel(IModel m) {
@@ -62,13 +74,33 @@ public class SudokuView extends View implements IModelListener{
 		//invalidate();
 	}
 	
+	public void setDialog(AlertDialog.Builder d) {
+		myDialog = d;
+	}
+	
+	private void drawList(Canvas canvas) {
+		myPaint.setColor(Color.BLACK);
+		myPaint.setStyle(Style.STROKE);
+		for (int i = 0; i < myHeight; i++) {
+			canvas.drawRect(myLeft + i * mySizeSquare, myTop + (mySizeSquare * (myWidth + 1)), myLeft + (i + 1) * mySizeSquare, myTop + (mySizeSquare * (myWidth + 2)), myPaint); 
+			String s = (i + 1) + "";
+			canvas.drawText(s, myLeft + i * mySizeSquare + 9, myTop + (mySizeSquare * (myWidth + 1)) + 21, myPaint);
+		}
+		if (myIlluminate == false) {
+			myPaint.setColor(Color.RED);
+			canvas.drawRect(myLeft + myNum * mySizeSquare + 2, myTop + (mySizeSquare * (myWidth + 1)) + 2, myLeft + (myNum + 1) * mySizeSquare - 2, myTop + (mySizeSquare * (myWidth + 2)) - 2, myPaint);
+		}
+		myPaint.setColor(Color.BLACK);
+		myPaint.setStyle(Style.FILL);
+	}
+	
 	protected void onDraw(Canvas canvas) {
 		super.onDraw(canvas);
 		canvas.drawColor(Color.WHITE);
 		canvas.drawRect(myLeft, myTop, myLeft + (mySizeSquare * myHeight) + 4, myTop + (mySizeSquare * myWidth) + 4,myPaint);
-		myPaint.setColor(Color.RED);
-		canvas.drawRect(myLeft + (myX * mySizeSquare) + 1, myTop + (myY * mySizeSquare) + 2,myLeft + (myX * mySizeSquare) + 2 + mySizeSquare ,  myTop + (myY * mySizeSquare) + mySizeSquare + 3,myPaint);
-		myPaint.setColor(Color.WHITE);
+		//myPaint.setColor(Color.RED);
+	//	canvas.drawRect(myLeft + (myX * mySizeSquare) + 1, myTop + (myY * mySizeSquare) + 2,myLeft + (myX * mySizeSquare) + 2 + mySizeSquare ,  myTop + (myY * mySizeSquare) + mySizeSquare + 3,myPaint);
+		//myPaint.setColor(Color.WHITE);
 		int[][] matrix = myModel.getSudoku();
 		int[][] matrixCondition = myModel.getSudokuCondition();
 		myPaint.setColor(Color.WHITE);
@@ -96,6 +128,42 @@ public class SudokuView extends View implements IModelListener{
         canvas.drawRect(myLeft + (mySizeSquare * 6 ) + 2, myTop + 2, myLeft + (mySizeSquare * 6) + 4, myTop + (mySizeSquare * myHeight)+ 2, myPaint);
         canvas.drawRect(myLeft + 2, myTop + (mySizeSquare * 3), myLeft + (mySizeSquare * myHeight) + 2, myTop + (mySizeSquare * 3) + 2, myPaint);
         canvas.drawRect(myLeft + 2, myTop + (mySizeSquare * 6), myLeft + (mySizeSquare * myHeight) + 2, myTop + (mySizeSquare * 6) + 2, myPaint);	
+        myPaint.setColor(Color.MAGENTA);
+        myPaint.setStyle(Style.STROKE);
+	    for (int i = 0; i < squareList.size(); i++) {
+            int l = squareList.get(i) / Model.myHeight;
+            int m = squareList.get(i) % Model.myHeight;
+            canvas.drawRect((myLeft + (m * mySizeSquare) + 4), (myTop + (l * mySizeSquare) + 4), myLeft + (m * mySizeSquare) + mySizeSquare,  myTop + (l * mySizeSquare) + mySizeSquare,myPaint);
+	    }
+	    if (myIlluminate) {
+	        myPaint.setColor(Color.RED);
+	    } else {
+	    	myPaint.setColor(Color.GRAY);
+	    }
+		canvas.drawRect(myLeft + (myX * mySizeSquare) + 4, myTop + (myY * mySizeSquare) + 4,myLeft + (myX * mySizeSquare) + mySizeSquare,  myTop + (myY * mySizeSquare) + mySizeSquare,myPaint);
+	    myPaint.setStyle(Style.FILL);
+	    myPaint.setColor(Color.BLACK);
+	    drawList(canvas);
+	}
+	
+	public void showDialog() {
+		if (myModel.isAccuracy() == false) {
+            int[][] matrix = myModel.getSudokuSolution();
+            for (int i = 0; i < Model.myHeight; i++) {
+                for (int j = 0; j < Model.myWidth; j++) {
+                    if ((myModel.getCell(i, j) != matrix[i][j])) {
+                        squareList.add(i * Model.myHeight + j);    
+                    } else {
+                        int number = squareList.indexOf(i * Model.myHeight + j);
+                        if (number != -1) {
+                            squareList.remove(number);
+                        }
+                    }  
+                }
+            }
+            invalidate();
+        } 
+		myDialog.show();	
 	}
 	
 	public boolean onKeyDown(int KeyCode, KeyEvent event) {
@@ -103,60 +171,88 @@ public class SudokuView extends View implements IModelListener{
 		    if ((KeyCode >= 8) && (KeyCode <= 16)) {
 		    	if (myModel.getSudokuCondition()[myY][myX] == 0) {
 		            myModel.setCell(myY, myX, KeyCode - 7);
+	            	squareList.clear();  
+		            if (myModel.isFull()) {
+		                showDialog();
+		            }
 		    	}
 		        return true;
 		    }
 		    if ((KeyCode == KeyEvent.KEYCODE_DPAD_DOWN)) {
-			    if (myY < 8) {
-			       myY = myY + 1;
-			       invalidate();
-			       return true;
+		    	if (myIlluminate) {
+		    	    if (myY < 8) {
+			           myY = myY + 1;
+			           invalidate();
+			           return true;
+			       }
 			   }
 		    }
+		    if ((KeyCode == KeyEvent.KEYCODE_DPAD_CENTER)) {
+		    	if (myIlluminate) {
+		    	    myIlluminate = false;
+		    	    invalidate();
+		    	} else {
+		    		myModel.setCell(myY, myX, (myNum + 1));
+		    		myNum = 0;
+		    		myIlluminate = true;
+		    		invalidate();
+		    	}
+		    	return true;
+		    }
 		    if ((KeyCode == KeyEvent.KEYCODE_DPAD_UP)) {
-			    if (myY > 0) {
-			       myY = myY - 1;
-			       invalidate();
-			       return true;
+		    	if (myIlluminate) {
+			        if (myY > 0) {
+			            myY = myY - 1;
+			            invalidate();
+			            return true;
+			        }
 			    }
 		     }
+		    if (KeyCode == 62) {
+		    	if (myIlluminate) {
+		    	     int i = myX;
+		             int j = myY;
+		             int num = myModel.getSudokuSolution()[j][i];
+		             myModel.setCell(j, i, num);
+		    	}
+		    	return true;	
+		    }
 		    if ((KeyCode == KeyEvent.KEYCODE_DPAD_LEFT)) {
-			    if (myX > 0) {
-			       myX = myX - 1;
-			       invalidate();
-			       return true;
-			    }
+		    	if (myIlluminate) {
+			        if (myX > 0) {
+			           myX = myX - 1;
+			           invalidate();
+			           return true;
+			        }
+		    	} else {
+		    		if (myNum > 0) {
+		    			myNum--;
+		    			invalidate();
+		    			return true;
+		    		}
+		    	}
 		    }
-		    if  ((KeyCode == KeyEvent.KEYCODE_DPAD_RIGHT)) {
-			    if (myX < 8) {
-			       myX = myX + 1;
-			       invalidate();
-			       return true;
-			    }
+		    if ((KeyCode == KeyEvent.KEYCODE_DPAD_RIGHT)) {
+		    	if (myIlluminate) {
+			        if (myX < 8) {
+			           myX = myX + 1;
+			           invalidate();
+			           return true;
+			        }
+		    	} else {
+		    		if (myNum < 8) {
+		    			myNum++;
+		    			invalidate();
+		    			return true;
+		    		}
+		    	}
 		    }
-		    if ((KeyCode == KeyEvent.KEYCODE_BACK)) {
-		    	saveSolution();
-		    }
+		    /*if ((KeyCode == KeyEvent.KEYCODE_BACK)) {
+		    	if (event.getAction() == KeyEvent.ACTION_DOWN) {
+				}  	
+		    }*/
 		}
 		return false;
-	}
-	
-	private void saveSolution() {
-		try {
-            FileWriter v = null;
-            try {
-            	v = new FileWriter("task.xml");
-                v = new FileWriter("task.xml");
-                WriterXML writer = new WriterXML();
-                writer.writeModel(v, myModel);
-            } finally {
-                if (v != null) {
-                    v.close();
-                }
-            }   
-        } catch (IOException e) {
-        	e.printStackTrace();
-        }
 	}
 	
 	 public void update(IModel m) {
