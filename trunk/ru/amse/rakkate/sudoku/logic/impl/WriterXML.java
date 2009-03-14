@@ -59,5 +59,5 @@ public class WriterXML {
         w.write(currentGap + "</prompting>\n");
         w.write("</model>\n"); 
     }
-    
 }
+    

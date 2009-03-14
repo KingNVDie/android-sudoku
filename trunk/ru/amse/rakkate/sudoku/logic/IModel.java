@@ -16,4 +16,5 @@ public interface IModel {
     public int getPrompting(int x, int y);
     public int[][] getMatrixPrompting();
     public void setMatrixPrompting(int[][] matrix);
+    public boolean isFull();
 }

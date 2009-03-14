@@ -1,6 +1,7 @@
 package ru.amse.rakkate.sudoku.logic.impl;
 
 import java.io.*;
+
 import ru.amse.rakkate.sudoku.logic.IModel;
 import ru.amse.rakkate.sudoku.logic.IReaderModel;
 import java.util.Scanner;
@@ -36,6 +37,7 @@ public class ReaderTXT implements IReaderModel {
     }
     
     public String readHelp(Scanner sc) {
+    	
         String str ="  ";
         while (sc.hasNextLine()) { 
            String s = sc.nextLine();
@@ -43,6 +45,35 @@ public class ReaderTXT implements IReaderModel {
            str = str +"\n";
         }
         return str;
+    }
+    
+    public IModel readStream(InputStream f, IModel model) throws IOException {
+    	int s = f.read();
+    	int i = 0;
+    	int[][] matrix = new int[Model.myHeight][Model.myWidth];
+    	while(s != -1) {
+    		if (s == 10) {
+    			s = f.read();
+    		} else {
+    			matrix[i / 9][i %9] = s;
+    			i++;
+    			if (i == 80) {
+    				for (int k = 0; k < Model.myHeight; k++) {
+    					for (int j = 0; j <Model.myWidth; j++) {
+    						model.setCell(k, j, matrix[k][j]);
+    					}
+    				}
+    			}
+    			if (i == 160) {
+    				model.setSudoku(matrix);
+    			}
+    			if (i == 240) {
+    				model.setSudokuSolution(matrix);
+    			}
+    			s = f.read();
+    		}
+    	}
+        return model;
     }
     
     public IModel readTXT(Reader f, IModel model) throws IOException, SecurityException, FileNotFoundException {

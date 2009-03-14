@@ -35,7 +35,6 @@ public class ReaderXML {
         public void startElement(String uri, String localName, String rawName, Attributes a) throws SAXException {
         	System.out.println(rawName);
         	state = rawName.toUpperCase();
-            //System.out.println(rawName);
             if (state.equals("CONDITION")) {
                 lineCounter = 0;
                 myCondition = true;  
@@ -63,7 +62,6 @@ public class ReaderXML {
             if (!Character.isISOControl(value.charAt(0))) {
             	System.out.println(state);
                 if (state.equals("LINE")) {
-                	//System.out.println("Hello");
                     if (myCondition) {
                         for (int i = 0; i < value.length(); i++) {
                             char s = value.charAt(i);
