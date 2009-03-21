@@ -7,6 +7,8 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import android.os.Handler;
 import android.util.AttributeSet;
@@ -40,9 +42,13 @@ public class SudokuView extends View implements IModelListener{
     private int myX;
     private int myY;
     private AlertDialog.Builder myDialog;
+    private AlertDialog.Builder myDialogFalse;
     private List<Integer> squareList;
     private boolean myIlluminate = true;
     private int myNum = 0;
+    private Timer myTimer;
+    private int myMinutes;
+    private int mySeconds;
 
 	
 	public SudokuView(Context context) {
@@ -67,28 +73,38 @@ public class SudokuView extends View implements IModelListener{
 		myX = 0;
 		myY = 0;
 		squareList = new LinkedList<Integer>();
+		/*myTimer = new Timer("TIME");
+		TimerTask timerTask = new UpdateTimeTask();
+		myTimer.schedule(timerTask, 0);*/
+		
 	}
 	
 	public void setModel(IModel m) {
 		myModel = m;
-		//invalidate();
 	}
 	
 	public void setDialog(AlertDialog.Builder d) {
 		myDialog = d;
 	}
 	
+	public void setDialogFalse(AlertDialog.Builder d) {
+		myDialogFalse = d;
+	}
+	
 	private void drawList(Canvas canvas) {
 		myPaint.setColor(Color.BLACK);
 		myPaint.setStyle(Style.STROKE);
-		for (int i = 0; i < myHeight; i++) {
+		for (int i = 0; i < myHeight ; i++) {
 			canvas.drawRect(myLeft + i * mySizeSquare, myTop + (mySizeSquare * (myWidth + 1)), myLeft + (i + 1) * mySizeSquare, myTop + (mySizeSquare * (myWidth + 2)), myPaint); 
 			String s = (i + 1) + "";
 			canvas.drawText(s, myLeft + i * mySizeSquare + 9, myTop + (mySizeSquare * (myWidth + 1)) + 21, myPaint);
 		}
+		canvas.drawRect(myLeft + mySizeSquare * myHeight, myTop + (mySizeSquare * (myWidth + 1)), myLeft + (myHeight + 1) * mySizeSquare, myTop + (mySizeSquare * (myWidth + 2)), myPaint);
+		String s = "X";
+		canvas.drawText(s, myLeft + mySizeSquare * myHeight + 9, myTop + (mySizeSquare * (myWidth + 1)) + 21, myPaint);
 		if (myIlluminate == false) {
 			myPaint.setColor(Color.RED);
-			canvas.drawRect(myLeft + myNum * mySizeSquare + 2, myTop + (mySizeSquare * (myWidth + 1)) + 2, myLeft + (myNum + 1) * mySizeSquare - 2, myTop + (mySizeSquare * (myWidth + 2)) - 2, myPaint);
+			canvas.drawRect(myLeft + myNum * mySizeSquare + 2, myTop + (mySizeSquare * (myWidth + 1)), myLeft + (myNum + 1) * mySizeSquare - 2, myTop + (mySizeSquare * (myWidth + 2)) - 2, myPaint);
 		}
 		myPaint.setColor(Color.BLACK);
 		myPaint.setStyle(Style.FILL);
@@ -98,9 +114,6 @@ public class SudokuView extends View implements IModelListener{
 		super.onDraw(canvas);
 		canvas.drawColor(Color.WHITE);
 		canvas.drawRect(myLeft, myTop, myLeft + (mySizeSquare * myHeight) + 4, myTop + (mySizeSquare * myWidth) + 4,myPaint);
-		//myPaint.setColor(Color.RED);
-	//	canvas.drawRect(myLeft + (myX * mySizeSquare) + 1, myTop + (myY * mySizeSquare) + 2,myLeft + (myX * mySizeSquare) + 2 + mySizeSquare ,  myTop + (myY * mySizeSquare) + mySizeSquare + 3,myPaint);
-		//myPaint.setColor(Color.WHITE);
 		int[][] matrix = myModel.getSudoku();
 		int[][] matrixCondition = myModel.getSudokuCondition();
 		myPaint.setColor(Color.WHITE);
@@ -143,6 +156,7 @@ public class SudokuView extends View implements IModelListener{
 		canvas.drawRect(myLeft + (myX * mySizeSquare) + 4, myTop + (myY * mySizeSquare) + 4,myLeft + (myX * mySizeSquare) + mySizeSquare,  myTop + (myY * mySizeSquare) + mySizeSquare,myPaint);
 	    myPaint.setStyle(Style.FILL);
 	    myPaint.setColor(Color.BLACK);
+	   // canvas.drawText(myString, 80, 150, myPaint);
 	    drawList(canvas);
 	}
 	
@@ -162,15 +176,17 @@ public class SudokuView extends View implements IModelListener{
                 }
             }
             invalidate();
-        } 
-		myDialog.show();	
+            myDialogFalse.show();
+		} else {
+		    myDialog.show();
+		}
 	}
 	
 	public boolean onKeyDown(int KeyCode, KeyEvent event) {
 		if (event.getAction() == KeyEvent.ACTION_DOWN) {
-		    if ((KeyCode >= 8) && (KeyCode <= 16)) {
+		    if ((KeyCode >= 7) && (KeyCode <= 16)) {
 		    	if (myModel.getSudokuCondition()[myY][myX] == 0) {
-		            myModel.setCell(myY, myX, KeyCode - 7);
+		    		myModel.setCell(myY, myX, KeyCode - 7);
 	            	squareList.clear();  
 		            if (myModel.isFull()) {
 		                showDialog();
@@ -192,7 +208,11 @@ public class SudokuView extends View implements IModelListener{
 		    	    myIlluminate = false;
 		    	    invalidate();
 		    	} else {
-		    		myModel.setCell(myY, myX, (myNum + 1));
+		    		if (myNum == 9) {
+		    			myModel.setCell(myY, myX, 0);
+		    		} else {
+		    		    myModel.setCell(myY, myX, (myNum + 1));
+		    		}
 		    		myNum = 0;
 		    		myIlluminate = true;
 		    		invalidate();
@@ -229,6 +249,10 @@ public class SudokuView extends View implements IModelListener{
 		    			myNum--;
 		    			invalidate();
 		    			return true;
+		    		} else if (myNum == 0) {
+		    			myNum = Model.myHeight;
+		    			invalidate();
+		    			return true;
 		    		}
 		    	}
 		    }
@@ -240,17 +264,17 @@ public class SudokuView extends View implements IModelListener{
 			           return true;
 			        }
 		    	} else {
-		    		if (myNum < 8) {
+		    		if (myNum < 9) {
 		    			myNum++;
+		    			invalidate();
+		    			return true;
+		    		} else if (myNum == 9) {
+		    			myNum = 0;
 		    			invalidate();
 		    			return true;
 		    		}
 		    	}
 		    }
-		    /*if ((KeyCode == KeyEvent.KEYCODE_BACK)) {
-		    	if (event.getAction() == KeyEvent.ACTION_DOWN) {
-				}  	
-		    }*/
 		}
 		return false;
 	}
