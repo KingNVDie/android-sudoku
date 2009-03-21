@@ -50,29 +50,43 @@ public class ReaderTXT implements IReaderModel {
     public IModel readStream(InputStream f, IModel model) throws IOException {
     	int s = f.read();
     	int i = 0;
+    	int number = 0;
     	int[][] matrix = new int[Model.myHeight][Model.myWidth];
+    	int[][] matrixSudoku = new int[Model.myHeight][Model.myWidth];
     	while(s != -1) {
     		if (s == 10) {
     			s = f.read();
     		} else {
     			matrix[i / 9][i %9] = s;
     			i++;
-    			if (i == 80) {
+    			if ((i == 81) && (number == 0)) {
     				for (int k = 0; k < Model.myHeight; k++) {
     					for (int j = 0; j <Model.myWidth; j++) {
-    						model.setCell(k, j, matrix[k][j]);
+    						matrixSudoku[k][j] = matrix[k][j];
+
     					}
     				}
+    				i = 0;
+    				number = 1;
     			}
-    			if (i == 160) {
+    			if ((i == 81) &&(number == 1)) {
     				model.setSudoku(matrix);
+    				i = 0;
+    				number = 2;
     			}
-    			if (i == 240) {
+    			if ((i == 81) && (number == 2)) {
     				model.setSudokuSolution(matrix);
+    				i = 0;
+    				number = 3;
     			}
     			s = f.read();
     		}
     	}
+    	for (int k = 0; k < Model.myHeight; k++) {
+			for (int j = 0; j <Model.myWidth; j++) {
+				model.setCell(k, j, matrixSudoku[k][j]);
+			}
+		}
         return model;
     }
     
