@@ -15,12 +15,17 @@ public final class R {
         public static final int white=0x7f050000;
     }
     public static final class drawable {
-        public static final int icon=0x7f020000;
+        public static final int help=0x7f020000;
+        public static final int icon=0x7f020001;
+        public static final int load=0x7f020002;
+        public static final int open=0x7f020003;
+        public static final int solution=0x7f020004;
+        public static final int sudoku=0x7f020005;
     }
     public static final class id {
-        public static final int difficultButton=0x7f060002;
-        public static final int lightButton=0x7f060000;
-        public static final int mediumButton=0x7f060001;
+        public static final int difficultButton=0x7f070002;
+        public static final int lightButton=0x7f070000;
+        public static final int mediumButton=0x7f070001;
     }
     public static final class layout {
         public static final int button=0x7f030000;
@@ -28,6 +33,8 @@ public final class R {
     }
     public static final class raw {
         public static final int help=0x7f040000;
-        public static final int sudoku=0x7f040001;
+    }
+    public static final class style {
+        public static final int Sudoku=0x7f060000;
     }
 }
