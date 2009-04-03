@@ -2,8 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="ru.amse.rakkate.sudoku.android.Sudoku">
     <application android:icon="@drawable/icon">
-        <activity android:name=".Sudoku"
-                  android:label="Sudoku">
+        <activity android:name=".SudokuMenu"
+                  android:label="SudokuMenu">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
